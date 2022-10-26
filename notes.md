@@ -9,4 +9,5 @@
 - What's the difference between append, extend?
 - How do you initialise a HashMap? ie. without ".insert" notation, similar to ``let v = vec![1,2,3]``, just for hashmaps or hashsets
 - What's the equivalent of ``printf("%3d", val);``?
+- Which values can be used as keys when hashing? Which trait does this depend on? 
 
