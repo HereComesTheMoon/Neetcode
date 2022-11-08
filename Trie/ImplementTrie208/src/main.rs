@@ -2,28 +2,28 @@ fn main() {
     println!("Hello, world!");
 }
 
-struct Trie<'a> {
-    head: Node<'a>,
+struct Trie {
+    head: Box<Node>,
 }
 
-struct Node<'a> {
-    next: [Option<&'a mut Node<'a>>; 26],
+struct Node {
+    next: [Option<Box<Node>>; 26],
     word: bool,
 }
 
-impl<'a> Node<'a> {
-    fn new() -> Self {
-        Node {
+impl Node {
+    fn new() -> Box<Node> {
+        Box::new(Node {
             next: [
                 None, None, None, None, None, None, None, None, None, None, None, None, None, None,
                 None, None, None, None, None, None, None, None, None, None, None, None,
             ],
             word: false,
-        }
+        })
     }
 }
 
-impl<'a> Trie<'a> {
+impl Trie {
     fn new() -> Self {
         Trie { head: Node::new() }
     }
@@ -32,14 +32,9 @@ impl<'a> Trie<'a> {
         let mut n = &mut self.head;
         for &c in word.as_bytes() {
             if let None = n.next[(c - b'a') as usize] {
-                let mut m = Node::new();
-                n.next[(c - b'a') as usize] = Some(&mut m);
+                n.next[(c - b'a') as usize] = Some(Node::new());
             }
-            n = n.next[0].as_mut().unwrap();
-            // n = n.next.get_mut(0).unwrap();
-            // n = n.next.get_mut(0).as_deref_mut()
-            // n = n.next.get_mut((c - b'a') as usize).unwrap();
-            // n = n.next[(c - b'a') as usize].as_mut().unwrap();
+            n = n.next[(c - b'a') as usize].as_mut().unwrap();
         }
         n.word = true;
     }
@@ -50,7 +45,7 @@ impl<'a> Trie<'a> {
             if let None = n.next[(c - b'a') as usize] {
                 return false;
             }
-            n = n.next[(c - b'a') as usize].unwrap();
+            n = n.next[(c - b'a') as usize].as_ref().unwrap();
         }
         return n.word;
     }
@@ -61,7 +56,7 @@ impl<'a> Trie<'a> {
             if let None = n.next[(c - b'a') as usize] {
                 return false;
             }
-            n = n.next[(c - b'a') as usize].unwrap();
+            n = n.next[(c - b'a') as usize].as_ref().unwrap();
         }
         return true;
     }
@@ -84,7 +79,8 @@ mod test {
 
         assert_eq!(t.starts_with("ho".into()), true);
         assert_eq!(t.starts_with("tilting".into()), true);
-        assert_eq!(t.starts_with("".into()), false);
+        assert_eq!(t.search("".into()), false);
+        assert_eq!(t.starts_with("".into()), true);
         assert_eq!(t.starts_with("abcd".into()), false);
     }
 }
