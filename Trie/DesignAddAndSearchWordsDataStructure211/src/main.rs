@@ -2,7 +2,7 @@ fn main() {
     println!("Hello, world!");
 }
 
-struct Trie {
+struct WordDictionary {
     head: Box<Node>,
 }
 
@@ -23,12 +23,12 @@ impl Node {
     }
 }
 
-impl Trie {
+impl WordDictionary {
     fn new() -> Self {
-        Trie { head: Node::new() }
+        WordDictionary { head: Node::new() }
     }
 
-    fn insert(&mut self, word: String) {
+    fn add_word(&mut self, word: String) {
         let mut n = &mut self.head;
         for &c in word.as_bytes() {
             if let None = n.next[(c - b'a') as usize] {
@@ -40,25 +40,31 @@ impl Trie {
     }
 
     fn search(&self, word: String) -> bool {
-        let mut n = &self.head;
-        for &c in word.as_bytes() {
-            if let None = n.next[(c - b'a') as usize] {
-                return false;
-            }
-            n = n.next[(c - b'a') as usize].as_ref().unwrap();
-        }
-        return n.word;
+        println!("{:?}", word.as_bytes());
+        self.head.search(word.as_bytes())
     }
+}
 
-    fn starts_with(&self, prefix: String) -> bool {
-        let mut n = &self.head;
-        for &c in prefix.as_bytes() {
-            if let None = n.next[(c - b'a') as usize] {
-                return false;
-            }
-            n = n.next[(c - b'a') as usize].as_ref().unwrap();
+impl Node {
+    fn search(&self, word: &[u8]) -> bool {
+        if word.len() == 0 {
+            return self.word;
         }
-        return true;
+        if word[0] == b'.' {
+            for n in &self.next {
+                if let Some(n) = n {
+                    if n.search(&word[1..]) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        if let Some(n) = &self.next[(word[0] - b'a') as usize].as_ref() {
+            n.search(&word[1..])
+        } else {
+            false
+        }
     }
 }
 
@@ -68,19 +74,21 @@ mod test {
 
     #[test]
     fn basic() {
-        let mut t = Trie::new();
-        t.insert("tilting".into());
+        let mut t = WordDictionary::new();
+        t.add_word("tilting".into());
         assert_eq!(t.search("tilting".into()), true);
-        t.insert("horse".into());
+        t.add_word("horse".into());
+        t.add_word("harse".into());
+        t.add_word("aarse".into());
         assert_eq!(t.search("horse".into()), true);
         assert_eq!(t.search("hoarse".into()), false);
-        t.insert("hoarse".into());
+        t.add_word("hoarse".into());
         assert_eq!(t.search("hoarse".into()), true);
 
-        assert_eq!(t.starts_with("ho".into()), true);
-        assert_eq!(t.starts_with("tilting".into()), true);
         assert_eq!(t.search("".into()), false);
-        assert_eq!(t.starts_with("".into()), true);
-        assert_eq!(t.starts_with("abcd".into()), false);
+        assert_eq!(t.search("h.rse".into()), true);
+        assert_eq!(t.search(".orse".into()), true);
+        assert_eq!(t.search(".ors".into()), false);
+        assert_eq!(t.search(".orsa".into()), false);
     }
 }
