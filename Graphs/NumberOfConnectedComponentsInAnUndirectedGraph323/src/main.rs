@@ -1,59 +1,65 @@
 fn main() {
     println!("Hello, world!");
+    assert_eq!(
+        2,
+        Solution::count_components(4, vec![vec![0, 1], vec![2, 0]])
+    );
+
+    assert_eq!(0, Solution::count_components(0, vec![]));
+
+    assert_eq!(1, Solution::count_components(1, vec![vec![1, 1]]));
 }
 
-#[derive(Clone, PartialEq)]
-struct Node<'a> {
-    parent: Option<&'a Node<'a>>,
-    size: u32,
+struct SetForest(Vec<Node>);
+
+#[derive(Clone, Copy)]
+struct Node {
+    next: usize,
+    size: usize,
 }
 
-impl<'a, 'b> Node<'a> {
-    pub fn find(&self) -> &Node {
-        let mut node = self;
-        // TODO: Path-splitting, update parents. Difficult in Rust, mutability issues
-        while node.parent.is_some() {
-            node = node.parent.unwrap();
-        }
-        node
+impl SetForest {
+    pub fn new(n: usize) -> Self {
+        SetForest((0..n).map(|x| Node { next: x, size: 0 }).collect())
     }
 
-    pub fn merge(&'b mut self, other: &'a mut Node<'b>) {
-        if *self.find() == *other.find() {
+    pub fn find(&mut self, mut n: usize) -> usize {
+        while self.0[n].next != n {
+            self.0[n] = self.0[self.0[n].next];
+            n = self.0[n].next;
+        }
+        n
+    }
+
+    pub fn merge(&mut self, a: usize, b: usize) {
+        if self.find(a) == self.find(b) {
             return;
         }
-        if self.size <= other.size {
-            self.size += other.size;
-            other.parent = Some(self);
+        if self.0[a].size < self.0[b].size {
+            self.0[a].next = b;
+            self.0[b].size += self.0[a].size;
         } else {
-            other.size += self.size;
-            self.parent = Some(other);
+            self.0[b].next = a;
+            self.0[a].size += self.0[b].size;
         }
     }
 }
+
+use std::collections::HashSet;
 
 struct Solution;
 
 impl Solution {
     pub fn count_components(n: i32, edges: Vec<Vec<i32>>) -> i32 {
-        let mut nodes = vec![
-            Node {
-                parent: None,
-                size: 0
-            };
-            n as usize
-        ];
+        let mut forest = SetForest::new(n as usize);
         for v in edges {
-            let (a, b) = if v[0] <= v[1] {
-                (v[0] as usize, v[1] as usize)
-            } else {
-                (v[1] as usize, v[0] as usize)
-            };
-            let (head, tail) = nodes.split_at_mut(b);
-
-            Node::merge(&mut head[a], &mut tail[0]);
+            forest.merge(v[0] as usize, v[1] as usize);
         }
-        unimplemented!()
+
+        (0..n as usize)
+            .map(|x| forest.find(x))
+            .collect::<HashSet<usize>>()
+            .len() as i32
     }
 }
 
