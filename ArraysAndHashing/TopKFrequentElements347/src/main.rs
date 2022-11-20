@@ -42,10 +42,4 @@ mod test {
         let sol = Solution::top_k_frequent(vec![1], 1);
         assert_eq!(sol, vec![1]);
     }
-
-    #[test]
-    fn test1() {
-        let sol = Solution::top_k_frequent(vec![1], 1);
-        assert_eq!(sol, vec![1]);
-    }
 }
