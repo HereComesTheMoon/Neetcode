@@ -4,41 +4,47 @@ fn main() {
 struct Solution;
 
 impl Solution {
-    pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
+    pub fn erase_overlap_intervals(mut v: Vec<Vec<i32>>) -> i32 {
         v.sort();
 
-        let mut now = 0;
-        while now < v.len() - 1 {
-            let mut pos = now + 1;
-            while pos < v.len() && v[pos][0] <= v[now][1] {
-                v[now][1] = i32::max(v[now][1], v[pos][1]);
-                v[pos][0] = 0;
-                v[pos][1] = -1;
-                pos += 1;
+        for now in 0..v.len() - 1 {
+            if v[now][1] <= v[now + 1][0] {
+                continue;
             }
-            now = pos;
+            if v[now][1] <= v[now + 1][1] {
+                v.swap(now, now + 1);
+            }
+            v[now][0] = 0;
+            v[now][1] = -1;
         }
 
-        v.into_iter().filter(|v| v[0] <= v[1]).collect()
+        v.into_iter().filter(|v| v[0] > v[1]).count() as i32
+    }
+}
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    
+    #[test]
+    fn ex1() {
+        let v = vec![vec![1,2],vec![2,3],vec![3,4],vec![1,3]];
+        assert_eq!(Solution::erase_overlap_intervals(v), 1);
+        
     }
     
-    // fn count_overlaps(v: &)
-
-    pub fn merge(mut v: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
-        v.sort();
-
-        let mut now = 0;
-        while now < v.len() - 1 {
-            let mut pos = now + 1;
-            while pos < v.len() && v[pos][0] <= v[now][1] {
-                v[now][1] = i32::max(v[now][1], v[pos][1]);
-                v[pos][0] = 0;
-                v[pos][1] = -1;
-                pos += 1;
-            }
-            now = pos;
-        }
-
-        v.into_iter().filter(|v| v[0] <= v[1]).collect()
+    #[test]
+    fn ex2() {
+        let v = vec![vec![1,2], vec![1, 2], vec![1, 2]];
+        assert_eq!(Solution::erase_overlap_intervals(v), 2);
+        
+    }
+    
+    #[test]
+    fn ex3() {
+        let v = vec![vec![1,2], vec![2,3]];
+        assert_eq!(Solution::erase_overlap_intervals(v), 0);
+        
     }
 }
