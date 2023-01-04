@@ -1,0 +1,1 @@
+Doesn't run directly, Leetcode has no generics. Without generics it works
